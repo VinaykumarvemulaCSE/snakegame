@@ -78,13 +78,13 @@ export function MusicPlayer() {
   return (
     <div className="w-full flex flex-col items-stretch mt-4">
       
-      <div className="flex flex-col mb-6 border-none neon-border-purple p-4 bg-[var(--color-blue-dark)]/50 rounded-xl shadow-[inset_0_0_20px_var(--color-blue-glow)]">
+      <div className="flex flex-col mb-6 border-none neon-border-magenta p-4 bg-black/40 rounded-xl shadow-[inset_0_0_20px_var(--color-magenta)]">
         <div className="text-[10px] text-[var(--color-cyan)] neon-text-cyan mb-1 uppercase tracking-widest flex justify-between font-arcade">
           <span>// MEDIA_BUFFER</span>
           <span className="text-[var(--color-yellow)] neon-text-yellow">{isPlaying ? "ACTIVE" : "IDLE"}</span>
         </div>
         <h2 className="text-sm font-arcade text-white uppercase truncate flex items-center gap-2 mt-2">
-          <span className="text-[var(--color-purple-glow)] neon-text-purple blink motion-safe:animate-[pulse_1s_steps(2)_infinite] text-[10px]">{">>"}</span>
+          <span className="text-[var(--color-magenta)] neon-text-magenta blink motion-safe:animate-[pulse_1s_steps(2)_infinite] text-[10px]">{">>"}</span>
           <span className={isPlaying ? "glitch" : ""} data-text={AUDIO_STREAM[currentIndex].hash}>
             {AUDIO_STREAM[currentIndex].hash}
           </span>
@@ -92,7 +92,7 @@ export function MusicPlayer() {
       </div>
 
       <div 
-        className="w-full border-none neon-border-blue h-4 mb-6 relative overflow-hidden bg-black flex grid grid-cols-12 shadow-[0_0_10px_var(--color-blue-glow)] rounded-full cursor-pointer touch-none"
+        className="w-full border-none neon-border-cyan h-4 mb-6 relative overflow-hidden bg-black flex grid grid-cols-12 shadow-[0_0_10px_var(--color-cyan)] rounded-full cursor-pointer touch-none"
         onClick={handleProgressClick}
         title="Seek Audio"
       >
@@ -107,25 +107,25 @@ export function MusicPlayer() {
       </div>
 
       <div className="flex items-center justify-between space-x-3 mb-8">
-        <button onClick={prevStream} className="p-3 border-none bg-[var(--color-blue-dark)] text-[var(--color-cyan)] hover:bg-[var(--color-blue-glow)] hover:text-white shadow-[0_0_15px_var(--color-blue-glow)] font-arcade hover:shadow-[0_0_25px_var(--color-cyan)] active:translate-y-1 transition-all duration-200 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-cyan)] flex items-center justify-center">
+        <button onClick={prevStream} className="p-3 border border-[rgba(255,0,255,0.3)] bg-black/40 text-[var(--color-magenta)] hover:bg-[var(--color-magenta)] hover:text-white shadow-[0_0_15px_rgba(255,0,255,0.3)] font-arcade hover:shadow-[0_0_25px_var(--color-magenta)] active:translate-y-1 transition-all duration-200 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-magenta)] flex items-center justify-center">
           <SkipBack size={24} className="drop-shadow-[0_0_8px_currentColor]" />
         </button>
         <button 
           onClick={togglePlay} 
-          className="py-3 px-6 flex-1 flex justify-center items-center gap-3 border border-[var(--color-cyan)] bg-[var(--color-black)]/50 shadow-[0_0_15px_rgba(0,240,255,0.3)] text-[var(--color-cyan)] hover:bg-[var(--color-cyan)] hover:text-[var(--color-black)] hover:shadow-[0_0_25px_var(--color-cyan)] font-arcade text-xl uppercase active:bg-[var(--color-blue-glow)] active:translate-y-1 transition-all duration-200 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-cyan)]"
+          className="py-3 px-6 flex-1 flex justify-center items-center gap-3 border border-[var(--color-cyan)] bg-[var(--color-black)]/50 shadow-[0_0_15px_rgba(0,255,255,0.3)] text-[var(--color-cyan)] hover:bg-[var(--color-cyan)] hover:text-[var(--color-black)] hover:shadow-[0_0_25px_var(--color-cyan)] font-arcade text-xl uppercase active:bg-[var(--color-cyan)] active:translate-y-1 transition-all duration-200 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-cyan)]"
         >
           {isPlaying ? <Pause className="drop-shadow-[0_0_8px_currentColor]" size={28} /> : <Play className="drop-shadow-[0_0_8px_currentColor]" size={28} fill="currentColor" />}
           <span className="hidden sm:inline">{isPlaying ? "SUSPEND" : "EXECUTE"}</span>
         </button>
-        <button onClick={nextStream} className="p-3 border-none bg-[var(--color-blue-dark)] text-[var(--color-cyan)] hover:bg-[var(--color-blue-glow)] hover:text-white shadow-[0_0_15px_var(--color-blue-glow)] font-arcade hover:shadow-[0_0_25px_var(--color-cyan)] active:translate-y-1 transition-all duration-200 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-cyan)] flex items-center justify-center">
+        <button onClick={nextStream} className="p-3 border border-[rgba(255,0,255,0.3)] bg-black/40 text-[var(--color-magenta)] hover:bg-[var(--color-magenta)] hover:text-white shadow-[0_0_15px_rgba(255,0,255,0.3)] font-arcade hover:shadow-[0_0_25px_var(--color-magenta)] active:translate-y-1 transition-all duration-200 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-magenta)] flex items-center justify-center">
           <SkipForward size={24} className="drop-shadow-[0_0_8px_currentColor]" />
         </button>
       </div>
 
-      <div className="border-t border-dashed border-[var(--color-blue-glow)] pt-4 flex flex-col gap-2 relative">
+      <div className="border-t border-dashed border-[var(--color-magenta)] pt-4 flex flex-col gap-2 relative mt-4">
          <span className="text-[10px] text-[var(--color-cyan)] uppercase font-arcade mb-2 tracking-widest text-shadow drop-shadow-[0_0_5px_var(--color-cyan)]">GAIN_OUTPUT [{Math.round(volume * 100)}%]</span>
          <div className="flex items-center gap-4">
-            <button onClick={() => setVolume(0)} className="text-[var(--color-cyan)] hover:text-white transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-cyan)] rounded">
+            <button onClick={() => setVolume(0)} className="text-[var(--color-magenta)] hover:text-white transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-magenta)] rounded">
               {volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}
             </button>
             <input 
@@ -133,15 +133,15 @@ export function MusicPlayer() {
               min="0" max="1" step="0.05" 
               value={volume} 
               onChange={(e) => setVolume(parseFloat(e.target.value))}
-              className="flex-grow h-2 bg-black appearance-none border border-[var(--color-blue-glow)] rounded-full cursor-crosshair focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-cyan)]
-                [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--color-cyan)] [&::-webkit-slider-thumb]:shadow-[0_0_10px_var(--color-cyan)]"
+              className="flex-grow h-2 bg-black appearance-none border border-[var(--color-cyan)] rounded-full cursor-crosshair focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-cyan)]
+                [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--color-magenta)] [&::-webkit-slider-thumb]:shadow-[0_0_10px_var(--color-magenta)]"
             />
          </div>
       </div>
       
       {/* Visual noise filler block */}
-      <div className="mt-8 p-4 bg-[var(--color-black)]/30 rounded-lg border border-[var(--color-blue-glow)]/30 select-none" aria-hidden="true" tabIndex={-1}>
-        <div className="w-full text-[8px] font-glitch text-[var(--color-blue-glow)] opacity-80 h-24 overflow-hidden leading-tight flex flex-col pointer-events-none select-none">
+      <div className="mt-8 p-4 bg-black/40 rounded-lg border border-[var(--color-magenta)]/30 select-none shadow-[inset_0_0_20px_rgba(255,0,255,0.1)]" aria-hidden="true" tabIndex={-1}>
+        <div className="w-full text-[8px] font-glitch text-[var(--color-magenta)] opacity-80 h-24 overflow-hidden leading-tight flex flex-col pointer-events-none select-none">
           <span>DATA_DUMP_START</span>
           <span>0x0010: a3 1f 2b 4c 9a 0f 1e 22 - 3b 4c 5d 6e 7f 8a 9b</span>
           <span>0x0020: 8c 7d 6e 5f 4a 3b 2c 1d - 0e 1f 2a 3b 4c 5d 6e</span>

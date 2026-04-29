@@ -231,16 +231,16 @@ export function SnakeGame() {
     ctx.setLineDash([]);
 
     // Draw Food (Data Packet)
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = corruptionMode ? '#fffb00' : '#0066ff';
-    ctx.fillStyle = corruptionMode ? '#fffb00' : '#00f0ff'; // Yellow or Cyan
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = corruptionMode ? '#fffb00' : '#ff00ff';
+    ctx.fillStyle = corruptionMode ? '#fffb00' : '#ff00ff'; // Yellow or Magenta
     ctx.fillRect(food.x * GRID_SIZE + 2, food.y * GRID_SIZE + 2, GRID_SIZE - 4, GRID_SIZE - 4);
     
     // Draw Snake (Memory Corruption)
     snake.forEach((segment, index) => {
       ctx.shadowBlur = index === 0 ? 15 : 8;
-      ctx.shadowColor = index === 0 ? '#00f0ff' : (corruptionMode ? '#00f0ff' : '#8b5cf6');
-      ctx.fillStyle = index === 0 ? '#ffffff' : (corruptionMode ? '#00f0ff' : '#8b5cf6');
+      ctx.shadowColor = index === 0 ? '#00ffff' : (corruptionMode ? '#00ffff' : '#00ffff');
+      ctx.fillStyle = index === 0 ? '#ffffff' : (corruptionMode ? '#00ffff' : '#00aaaa');
       
       const padding = 1;
       const xOffset = gameOver ? Math.random() * 4 - 2 : 0;
@@ -267,7 +267,7 @@ export function SnakeGame() {
           <span className="text-[10px] uppercase mb-1">MEM_LEAK_BYTES</span>
           <span className="text-xl">0x{score.toString(16).toUpperCase().padStart(4, '0')}</span>
         </div>
-        <div className="flex flex-col items-end text-[var(--color-yellow)] neon-text-yellow">
+        <div className="flex flex-col items-end text-[var(--color-magenta)] neon-text-magenta">
           <span className="text-[10px] uppercase mb-1">MAX_CORRUPTION</span>
           <span className="text-xl">0x{highScore.toString(16).toUpperCase().padStart(4, '0')}</span>
         </div>
@@ -278,7 +278,7 @@ export function SnakeGame() {
           ref={canvasRef}
           width={CANVAS_SIZE}
           height={CANVAS_SIZE}
-          className="w-full h-auto object-contain bg-[#0a0a0c] filter contrast-125 relative z-0"
+          className="w-full h-auto object-contain bg-[var(--color-black)] relative z-0 mix-blend-screen"
         />
 
         {/* Score Popups */}
@@ -292,21 +292,21 @@ export function SnakeGame() {
               transform: 'translateX(-50%)'
             }}
           >
-            <div className="animate-popup text-[var(--color-cyan)] font-arcade text-[12px] md:text-sm neon-text-cyan flex items-center justify-center">
+            <div className="animate-popup text-[var(--color-magenta)] font-arcade text-[12px] md:text-sm neon-text-magenta flex items-center justify-center">
               {popup.text}
             </div>
           </div>
         ))}
 
         {!isStarted && !gameOver && (
-          <div className="absolute inset-0 bg-[var(--color-black)]/60 flex flex-col items-center justify-center text-center p-6 z-10 border border-[var(--color-cyan)] m-2 shadow-[inset_0_0_20px_var(--color-cyan)] rounded-lg backdrop-blur-[2px]">
+          <div className="absolute inset-0 bg-[#050005]/70 flex flex-col items-center justify-center text-center p-6 z-10 border border-[var(--color-cyan)] m-2 shadow-[inset_0_0_20px_var(--color-cyan)] rounded-lg backdrop-blur-md">
             <h1 className="text-2xl md:text-3xl text-white mb-6 glitch uppercase neon-text-cyan" data-text="AWAITING_INPUT">AWAITING_INPUT</h1>
-            <p className="text-[var(--color-cyan)] text-[10px] md:text-xs mb-8 leading-loose uppercase neon-text-cyan">
+            <p className="text-[var(--color-magenta)] text-[10px] md:text-xs mb-8 leading-loose uppercase neon-text-magenta">
               {">"} COMMAND: WASD OR ARROWS<br/>{">"} PAUSE: SPACEBAR
             </p>
             <button 
               onClick={startGame}
-              className="px-6 py-4 bg-[var(--color-blue-dark)] border-2 border-[var(--color-blue-glow)] shadow-[0_0_15px_var(--color-blue-glow)] text-white text-xs md:text-sm uppercase font-bold hover:bg-[var(--color-cyan)] hover:border-[var(--color-cyan)] hover:shadow-[0_0_20px_var(--color-cyan)] hover:text-black transition-all rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-cyan)]"
+              className="px-6 py-4 bg-black/50 border-2 border-[var(--color-cyan)] shadow-[0_0_15px_rgba(0,255,255,0.4)] text-white text-xs md:text-sm uppercase font-bold hover:bg-[var(--color-cyan)] hover:border-[var(--color-cyan)] hover:shadow-[0_0_20px_var(--color-cyan)] hover:text-black transition-all rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-cyan)]"
             >
               [ INJECT_PAYLOAD ]
             </button>
@@ -314,17 +314,17 @@ export function SnakeGame() {
         )}
 
         {isPaused && !gameOver && isStarted && (
-          <div className="absolute inset-0 bg-[var(--color-blue-glow)]/10 mix-blend-color-burn flex items-center justify-center z-10 backdrop-blur-[1px]">
-             <div className="bg-black/70 border-2 neon-border-cyan py-4 px-8 backdrop-blur-md rounded-xl">
-               <h2 className="text-xl md:text-2xl text-[var(--color-cyan)] neon-text-cyan uppercase blink glitch" data-text="THREAD_FROZEN">THREAD_FROZEN</h2>
+          <div className="absolute inset-0 bg-[var(--color-cyan)]/10 mix-blend-color-burn flex items-center justify-center z-10 backdrop-blur-sm">
+             <div className="bg-black/70 border-2 neon-border-magenta py-4 px-8 backdrop-blur-md rounded-xl">
+               <h2 className="text-xl md:text-2xl text-[var(--color-magenta)] neon-text-magenta uppercase blink glitch" data-text="THREAD_FROZEN">THREAD_FROZEN</h2>
              </div>
           </div>
         )}
 
         {gameOver && (
-          <div className="absolute inset-0 bg-[#ff0000]/20 flex flex-col items-center justify-center text-center p-6 z-10 backdrop-blur-[2px]">
-            <div className="bg-black/80 border-2 neon-border-purple p-6 backdrop-blur-md rounded-xl">
-                <h2 className="text-2xl md:text-3xl text-white mb-4 uppercase glitch neon-text-purple" data-text="KERNEL_PANIC">KERNEL_PANIC</h2>
+          <div className="absolute inset-0 bg-[#ff00ff]/20 flex flex-col items-center justify-center text-center p-6 z-10 backdrop-blur-sm">
+            <div className="bg-black/80 border-2 neon-border-magenta p-6 backdrop-blur-md rounded-xl">
+                <h2 className="text-2xl md:text-3xl text-white mb-4 uppercase glitch neon-text-magenta" data-text="KERNEL_PANIC">KERNEL_PANIC</h2>
                 <div className="text-[var(--color-yellow)] neon-text-yellow text-sm mb-6 flex flex-col">
                   <span>SIGSEGV (11)</span> 
                   <span className="text-[var(--color-cyan)] text-xs mt-2 font-glitch tracking-widest text-left">
@@ -347,19 +347,19 @@ export function SnakeGame() {
       {/* Harsh Mobile Controls */}
       <div className="grid grid-cols-3 gap-2 mt-6 md:hidden max-w-[220px] w-full mx-auto touch-none">
         <div></div>
-        <button className="bg-[var(--color-black)]/30 border border-[var(--color-blue-glow)] p-4 flex items-center justify-center text-[var(--color-cyan)] active:bg-[var(--color-blue-glow)] active:text-white rounded-xl shadow-[0_0_10px_rgba(0,102,255,0.2)] touch-manipulation"
+        <button className="bg-black/40 border border-[var(--color-cyan)] p-4 flex items-center justify-center text-[var(--color-cyan)] active:bg-[var(--color-cyan)] active:text-black rounded-xl shadow-[0_0_15px_rgba(0,255,255,0.2)] touch-manipulation"
                 onPointerDown={(e) => { e.preventDefault(); handleMobileInput({x: 0, y: -1}); }}><ArrowUp size={24} className="drop-shadow-[0_0_5px_currentColor]" /></button>
         <div></div>
-        <button className="bg-[var(--color-black)]/30 border border-[var(--color-blue-glow)] p-4 flex items-center justify-center text-[var(--color-cyan)] active:bg-[var(--color-blue-glow)] active:text-white rounded-xl shadow-[0_0_10px_rgba(0,102,255,0.2)] touch-manipulation"
+        <button className="bg-black/40 border border-[var(--color-cyan)] p-4 flex items-center justify-center text-[var(--color-cyan)] active:bg-[var(--color-cyan)] active:text-black rounded-xl shadow-[0_0_15px_rgba(0,255,255,0.2)] touch-manipulation"
                 onPointerDown={(e) => { e.preventDefault(); handleMobileInput({x: -1, y: 0}); }}><ArrowLeft size={24} className="drop-shadow-[0_0_5px_currentColor]" /></button>
-        <button className="bg-[var(--color-black)]/30 border border-[var(--color-yellow)] p-4 flex items-center justify-center text-[var(--color-yellow)] active:bg-[var(--color-yellow)] active:text-black rounded-xl shadow-[0_0_10px_rgba(255,251,0,0.2)] flex-col gap-1 touch-manipulation"
+        <button className="bg-black/40 border border-[var(--color-magenta)] p-4 flex items-center justify-center text-[var(--color-magenta)] active:bg-[var(--color-magenta)] active:text-black rounded-xl shadow-[0_0_15px_rgba(255,0,255,0.2)] flex-col gap-1 touch-manipulation"
                 onClick={(e) => { e.preventDefault(); isStarted ? !gameOver && setIsPaused(p => !p) : startGame()}}>
           {isStarted && !isPaused ? <Pause size={18} /> : <Play size={18} fill="currentColor" />}
         </button>
-        <button className="bg-[var(--color-black)]/30 border border-[var(--color-blue-glow)] p-4 flex items-center justify-center text-[var(--color-cyan)] active:bg-[var(--color-blue-glow)] active:text-white rounded-xl shadow-[0_0_10px_rgba(0,102,255,0.2)] touch-manipulation"
+        <button className="bg-black/40 border border-[var(--color-cyan)] p-4 flex items-center justify-center text-[var(--color-cyan)] active:bg-[var(--color-cyan)] active:text-black rounded-xl shadow-[0_0_15px_rgba(0,255,255,0.2)] touch-manipulation"
                 onPointerDown={(e) => { e.preventDefault(); handleMobileInput({x: 1, y: 0}); }}><ArrowRight size={24} className="drop-shadow-[0_0_5px_currentColor]" /></button>
         <div></div>
-        <button className="bg-[var(--color-black)]/30 border border-[var(--color-blue-glow)] p-4 flex items-center justify-center text-[var(--color-cyan)] active:bg-[var(--color-blue-glow)] active:text-white rounded-xl shadow-[0_0_10px_rgba(0,102,255,0.2)] touch-manipulation"
+        <button className="bg-black/40 border border-[var(--color-cyan)] p-4 flex items-center justify-center text-[var(--color-cyan)] active:bg-[var(--color-cyan)] active:text-black rounded-xl shadow-[0_0_15px_rgba(0,255,255,0.2)] touch-manipulation"
                 onPointerDown={(e) => { e.preventDefault(); handleMobileInput({x: 0, y: 1}); }}><ArrowDown size={24} className="drop-shadow-[0_0_5px_currentColor]" /></button>
         <div></div>
       </div>
