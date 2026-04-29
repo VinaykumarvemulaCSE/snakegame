@@ -167,6 +167,25 @@ body {
   background: var(--color-cyan);
 }
 
+@keyframes popup-fade-up {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-30px) scale(1.5); }
+}
+.animate-popup {
+  animation: popup-fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes shake-subtle {
+  0%, 100% { transform: translate(0, 0) }
+  20% { transform: translate(-3px, 2px) }
+  40% { transform: translate(3px, -1px) }
+  60% { transform: translate(-1px, -3px) }
+  80% { transform: translate(2px, 2px) }
+}
+.animate-shake-subtle {
+  animation: shake-subtle 0.3s cubic-bezier(.36,.07,.19,.97) both;
+}
+
 /* Neon Glows */
 .neon-border-cyan {
   border-color: var(--color-cyan);

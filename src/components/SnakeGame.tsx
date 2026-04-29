@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Play, Pause } from 'lucide-react';
 
 const GRID_SIZE = 25;
 const TILE_COUNT = 20; 
@@ -14,14 +15,26 @@ export function SnakeGame() {
   const [direction, setDirection] = useState(INITIAL_DIRECTION);
   const [food, setFood] = useState({ x: 5, y: 5 });
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(0);
+  const [highScore, setHighScore] = useState(() => {
+    const saved = localStorage.getItem('snakeHighScore');
+    return saved ? parseInt(saved, 10) : 0;
+  });
   const [gameOver, setGameOver] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [corruptionMode, setCorruptionMode] = useState(false);
   
+  const [scorePopups, setScorePopups] = useState<Array<{ id: number, x: number, y: number, text: string }>>([]);
+  const [isShaking, setIsShaking] = useState(false);
+  
   const directionRef = useRef(INITIAL_DIRECTION);
+  const lastMoveDirectionRef = useRef(INITIAL_DIRECTION);
+  const inputQueueRef = useRef<{x: number, y: number}[]>([]);
   const gameLoopRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem('snakeHighScore', highScore.toString());
+  }, [highScore]);
 
   // Generate random food
   const generateFood = (currentSnake: {x: number, y: number}[]) => {
@@ -40,8 +53,9 @@ export function SnakeGame() {
 
   const startGame = () => {
     setSnake(INITIAL_SNAKE);
-    setDirection(INITIAL_DIRECTION);
     directionRef.current = INITIAL_DIRECTION;
+    lastMoveDirectionRef.current = INITIAL_DIRECTION;
+    inputQueueRef.current = [];
     setScore(0);
     setGameOver(false);
     setIsStarted(true);
@@ -69,30 +83,42 @@ export function SnakeGame() {
 
       if (isPaused || !isStarted || gameOver) return;
 
-      const { x, y } = directionRef.current;
+      const baseDirection = inputQueueRef.current.length > 0 
+        ? inputQueueRef.current[inputQueueRef.current.length - 1] 
+        : lastMoveDirectionRef.current;
+
+      const { x, y } = baseDirection;
       const key = e.key.toLowerCase();
+      let newDirection = null;
       
       switch (key) {
         case 'arrowup':
         case 'w':
-          if (y !== 1) directionRef.current = { x: 0, y: -1 };
+          if (y !== 1) newDirection = { x: 0, y: -1 };
           break;
         case 'arrowdown':
         case 's':
-          if (y !== -1) directionRef.current = { x: 0, y: 1 };
+          if (y !== -1) newDirection = { x: 0, y: 1 };
           break;
         case 'arrowleft':
         case 'a':
-          if (x !== 1) directionRef.current = { x: -1, y: 0 };
+          if (x !== 1) newDirection = { x: -1, y: 0 };
           break;
         case 'arrowright':
         case 'd':
-          if (x !== -1) directionRef.current = { x: 1, y: 0 };
+          if (x !== -1) newDirection = { x: 1, y: 0 };
           break;
+      }
+      
+      if (newDirection) {
+         if (inputQueueRef.current.length < 2) {
+           inputQueueRef.current.push(newDirection);
+           directionRef.current = newDirection;
+         }
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown, { passive: false });
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isStarted, gameOver, isPaused]);
 
@@ -101,6 +127,12 @@ export function SnakeGame() {
     if (!isStarted || gameOver || isPaused) return;
 
     const moveSnake = () => {
+      // Process input queue
+      if (inputQueueRef.current.length > 0) {
+        directionRef.current = inputQueueRef.current.shift()!;
+      }
+      
+      lastMoveDirectionRef.current = directionRef.current;
       setSnake(prevSnake => {
         const head = { ...prevSnake[0] };
         head.x += directionRef.current.x;
@@ -125,6 +157,17 @@ export function SnakeGame() {
             }
             return newScore;
           });
+          
+          // Visual Feedback Effect
+          const popupId = Date.now() + Math.random();
+          setScorePopups(prev => [...prev, { id: popupId, x: head.x, y: head.y, text: '+16' }]);
+          setIsShaking(true);
+          
+          setTimeout(() => {
+             setScorePopups(prev => prev.filter(p => p.id !== popupId));
+          }, 800);
+          setTimeout(() => setIsShaking(false), 300);
+
           setFood(generateFood(newSnake));
         } else {
           newSnake.pop();
@@ -141,6 +184,22 @@ export function SnakeGame() {
       if (gameLoopRef.current) window.clearInterval(gameLoopRef.current);
     };
   }, [isStarted, gameOver, isPaused, food, score]);
+
+  // Helper for mobile controls
+  const handleMobileInput = (newDir: {x: number, y: number}) => {
+     if (isPaused || !isStarted || gameOver) return;
+     const baseDirection = inputQueueRef.current.length > 0 
+        ? inputQueueRef.current[inputQueueRef.current.length - 1] 
+        : lastMoveDirectionRef.current;
+        
+     const invalidReverse = (baseDirection.x !== 0 && newDir.x === -baseDirection.x) || 
+                            (baseDirection.y !== 0 && newDir.y === -baseDirection.y);
+                            
+     if (!invalidReverse && inputQueueRef.current.length < 2) {
+       inputQueueRef.current.push(newDir);
+       directionRef.current = newDir;
+     }
+  };
 
   // Render Canvas
   useEffect(() => {
@@ -214,13 +273,30 @@ export function SnakeGame() {
         </div>
       </div>
 
-      <div className="relative glass-canvas-container overflow-hidden p-0 w-full max-w-[500px] rounded-xl">
+      <div className={`relative glass-canvas-container overflow-hidden p-0 w-full max-w-[500px] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-cyan)] ${isShaking ? 'animate-shake-subtle' : ''}`} tabIndex={0}>
         <canvas
           ref={canvasRef}
           width={CANVAS_SIZE}
           height={CANVAS_SIZE}
           className="w-full h-auto object-contain bg-[#0a0a0c] filter contrast-125 relative z-0"
         />
+
+        {/* Score Popups */}
+        {scorePopups.map(popup => (
+          <div 
+            key={popup.id}
+            className="absolute pointer-events-none z-20 transition-none"
+            style={{
+              left: `${((popup.x + 0.5) / TILE_COUNT) * 100}%`,
+              top: `${((popup.y) / TILE_COUNT) * 100}%`,
+              transform: 'translateX(-50%)'
+            }}
+          >
+            <div className="animate-popup text-[var(--color-cyan)] font-arcade text-[12px] md:text-sm neon-text-cyan flex items-center justify-center">
+              {popup.text}
+            </div>
+          </div>
+        ))}
 
         {!isStarted && !gameOver && (
           <div className="absolute inset-0 bg-[var(--color-black)]/60 flex flex-col items-center justify-center text-center p-6 z-10 border border-[var(--color-cyan)] m-2 shadow-[inset_0_0_20px_var(--color-cyan)] rounded-lg backdrop-blur-[2px]">
@@ -230,7 +306,7 @@ export function SnakeGame() {
             </p>
             <button 
               onClick={startGame}
-              className="px-6 py-4 bg-[var(--color-blue-dark)] border-2 border-[var(--color-blue-glow)] shadow-[0_0_15px_var(--color-blue-glow)] text-white text-xs md:text-sm uppercase font-bold hover:bg-[var(--color-cyan)] hover:border-[var(--color-cyan)] hover:shadow-[0_0_20px_var(--color-cyan)] hover:text-black transition-all rounded-md"
+              className="px-6 py-4 bg-[var(--color-blue-dark)] border-2 border-[var(--color-blue-glow)] shadow-[0_0_15px_var(--color-blue-glow)] text-white text-xs md:text-sm uppercase font-bold hover:bg-[var(--color-cyan)] hover:border-[var(--color-cyan)] hover:shadow-[0_0_20px_var(--color-cyan)] hover:text-black transition-all rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-cyan)]"
             >
               [ INJECT_PAYLOAD ]
             </button>
@@ -259,7 +335,7 @@ export function SnakeGame() {
                 </div>
                 <button 
                 onClick={startGame}
-                className="px-8 py-3 bg-transparent border-2 neon-border-cyan text-[var(--color-cyan)] text-xs md:text-sm uppercase hover:bg-[var(--color-cyan)] hover:text-black hover:shadow-[0_0_20px_var(--color-cyan)] transition-all active:translate-y-1 block w-full rounded-md"
+                className="px-8 py-3 bg-transparent border-2 neon-border-cyan text-[var(--color-cyan)] text-xs md:text-sm uppercase hover:bg-[var(--color-cyan)] hover:text-black hover:shadow-[0_0_20px_var(--color-cyan)] transition-all active:translate-y-1 block w-full rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-cyan)]"
                 >
                 [ OVERRIDE_AND_REBOOT ]
                 </button>
@@ -269,20 +345,22 @@ export function SnakeGame() {
       </div>
       
       {/* Harsh Mobile Controls */}
-      <div className="grid grid-cols-3 gap-1 mt-6 md:hidden max-w-[200px] w-full mx-auto">
+      <div className="grid grid-cols-3 gap-2 mt-6 md:hidden max-w-[220px] w-full mx-auto touch-none">
         <div></div>
-        <button className="bg-black/50 border-2 neon-border-blue p-4 flex items-center justify-center text-[var(--color-cyan)] active:bg-[var(--color-blue-glow)] active:text-white font-glitch text-2xl uppercase rounded-lg"
-                onPointerDown={() => directionRef.current.y !== 1 && (directionRef.current = {x: 0, y: -1})}>W</button>
+        <button className="bg-[var(--color-black)]/30 border border-[var(--color-blue-glow)] p-4 flex items-center justify-center text-[var(--color-cyan)] active:bg-[var(--color-blue-glow)] active:text-white rounded-xl shadow-[0_0_10px_rgba(0,102,255,0.2)] touch-manipulation"
+                onPointerDown={(e) => { e.preventDefault(); handleMobileInput({x: 0, y: -1}); }}><ArrowUp size={24} className="drop-shadow-[0_0_5px_currentColor]" /></button>
         <div></div>
-        <button className="bg-black/50 border-2 neon-border-blue p-4 flex items-center justify-center text-[var(--color-cyan)] active:bg-[var(--color-blue-glow)] active:text-white font-glitch text-2xl uppercase rounded-lg"
-                onPointerDown={() => directionRef.current.x !== 1 && (directionRef.current = {x: -1, y: 0})}>A</button>
-        <button className="bg-black/50 border-2 neon-border-yellow p-4 flex items-center justify-center text-[var(--color-yellow)] active:bg-[var(--color-yellow)] active:text-black font-glitch text-xs uppercase rounded-lg"
-                onClick={() => isStarted ? !gameOver && setIsPaused(p => !p) : startGame()}>ACT</button>
-        <button className="bg-black/50 border-2 neon-border-blue p-4 flex items-center justify-center text-[var(--color-cyan)] active:bg-[var(--color-blue-glow)] active:text-white font-glitch text-2xl uppercase rounded-lg"
-                onPointerDown={() => directionRef.current.x !== -1 && (directionRef.current = {x: 1, y: 0})}>D</button>
+        <button className="bg-[var(--color-black)]/30 border border-[var(--color-blue-glow)] p-4 flex items-center justify-center text-[var(--color-cyan)] active:bg-[var(--color-blue-glow)] active:text-white rounded-xl shadow-[0_0_10px_rgba(0,102,255,0.2)] touch-manipulation"
+                onPointerDown={(e) => { e.preventDefault(); handleMobileInput({x: -1, y: 0}); }}><ArrowLeft size={24} className="drop-shadow-[0_0_5px_currentColor]" /></button>
+        <button className="bg-[var(--color-black)]/30 border border-[var(--color-yellow)] p-4 flex items-center justify-center text-[var(--color-yellow)] active:bg-[var(--color-yellow)] active:text-black rounded-xl shadow-[0_0_10px_rgba(255,251,0,0.2)] flex-col gap-1 touch-manipulation"
+                onClick={(e) => { e.preventDefault(); isStarted ? !gameOver && setIsPaused(p => !p) : startGame()}}>
+          {isStarted && !isPaused ? <Pause size={18} /> : <Play size={18} fill="currentColor" />}
+        </button>
+        <button className="bg-[var(--color-black)]/30 border border-[var(--color-blue-glow)] p-4 flex items-center justify-center text-[var(--color-cyan)] active:bg-[var(--color-blue-glow)] active:text-white rounded-xl shadow-[0_0_10px_rgba(0,102,255,0.2)] touch-manipulation"
+                onPointerDown={(e) => { e.preventDefault(); handleMobileInput({x: 1, y: 0}); }}><ArrowRight size={24} className="drop-shadow-[0_0_5px_currentColor]" /></button>
         <div></div>
-        <button className="bg-black/50 border-2 neon-border-blue p-4 flex items-center justify-center text-[var(--color-cyan)] active:bg-[var(--color-blue-glow)] active:text-white font-glitch text-2xl uppercase rounded-lg"
-                onPointerDown={() => directionRef.current.y !== -1 && (directionRef.current = {x: 0, y: 1})}>S</button>
+        <button className="bg-[var(--color-black)]/30 border border-[var(--color-blue-glow)] p-4 flex items-center justify-center text-[var(--color-cyan)] active:bg-[var(--color-blue-glow)] active:text-white rounded-xl shadow-[0_0_10px_rgba(0,102,255,0.2)] touch-manipulation"
+                onPointerDown={(e) => { e.preventDefault(); handleMobileInput({x: 0, y: 1}); }}><ArrowDown size={24} className="drop-shadow-[0_0_5px_currentColor]" /></button>
         <div></div>
       </div>
     </div>
