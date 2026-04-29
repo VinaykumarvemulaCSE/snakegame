@@ -12,9 +12,10 @@ export function SnakeGame() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   
   const [snake, setSnake] = useState(INITIAL_SNAKE);
-  const [direction, setDirection] = useState(INITIAL_DIRECTION);
+  const [currentInput, setCurrentInput] = useState(INITIAL_DIRECTION);
   const [food, setFood] = useState({ x: 5, y: 5 });
   const [score, setScore] = useState(0);
+  const [speed, setSpeed] = useState(140);
   const [highScore, setHighScore] = useState(() => {
     const saved = localStorage.getItem('snakeHighScore');
     return saved ? parseInt(saved, 10) : 0;
@@ -114,6 +115,7 @@ export function SnakeGame() {
          if (inputQueueRef.current.length < 2) {
            inputQueueRef.current.push(newDirection);
            directionRef.current = newDirection;
+           setCurrentInput(newDirection);
          }
       }
     };
@@ -131,6 +133,7 @@ export function SnakeGame() {
       if (inputQueueRef.current.length > 0) {
         directionRef.current = inputQueueRef.current.shift()!;
       }
+      setCurrentInput(directionRef.current);
       
       lastMoveDirectionRef.current = directionRef.current;
       setSnake(prevSnake => {
@@ -177,7 +180,7 @@ export function SnakeGame() {
       });
     };
 
-    const currentSpeed = Math.max(30, BASE_SPEED - Math.floor(score / 50) * 5);
+    const currentSpeed = Math.max(30, speed - Math.floor(score / 50) * 5);
     gameLoopRef.current = window.setInterval(moveSnake, currentSpeed);
 
     return () => {
@@ -198,6 +201,7 @@ export function SnakeGame() {
      if (!invalidReverse && inputQueueRef.current.length < 2) {
        inputQueueRef.current.push(newDir);
        directionRef.current = newDir;
+       setCurrentInput(newDir);
      }
   };
 
@@ -261,14 +265,25 @@ export function SnakeGame() {
 
   return (
     <div className="flex flex-col items-center select-none font-arcade w-full mt-6">
-      <div className="flex justify-between w-full max-w-[500px] mb-4 
+      <div className="flex justify-between items-end w-full max-w-[500px] mb-4 
                       border-b-[2px] border-dashed border-[var(--color-blue-glow)] pb-2 glow-border-bottom">
-        <div className="flex flex-col text-[var(--color-cyan)] neon-text-cyan">
-          <span className="text-[10px] uppercase mb-1">MEM_LEAK_BYTES</span>
-          <span className="text-xl">0x{score.toString(16).toUpperCase().padStart(4, '0')}</span>
+        <div className="flex flex-col text-[var(--color-cyan)] neon-text-cyan flex-1">
+          <span className="text-[10px] uppercase mb-1">MEM_LEAK</span>
+          <span className="text-xl mr-auto">0x{score.toString(16).toUpperCase().padStart(4, '0')}</span>
         </div>
-        <div className="flex flex-col items-end text-[var(--color-magenta)] neon-text-magenta">
-          <span className="text-[10px] uppercase mb-1">MAX_CORRUPTION</span>
+        
+        {/* Visualizer */}
+        <div className="flex items-center gap-1 mx-2 flex-1 justify-center">
+            <ArrowLeft size={16} className={currentInput.x === -1 ? 'text-[var(--color-cyan)] drop-shadow-[0_0_5px_var(--color-cyan)]' : 'text-[var(--color-cyan)]/20'} />
+            <div className="flex flex-col gap-1">
+              <ArrowUp size={16} className={currentInput.y === -1 ? 'text-[var(--color-cyan)] drop-shadow-[0_0_5px_var(--color-cyan)]' : 'text-[var(--color-cyan)]/20'} />
+              <ArrowDown size={16} className={currentInput.y === 1 ? 'text-[var(--color-cyan)] drop-shadow-[0_0_5px_var(--color-cyan)]' : 'text-[var(--color-cyan)]/20'} />
+            </div>
+            <ArrowRight size={16} className={currentInput.x === 1 ? 'text-[var(--color-cyan)] drop-shadow-[0_0_5px_var(--color-cyan)]' : 'text-[var(--color-cyan)]/20'} />
+        </div>
+
+        <div className="flex flex-col items-end text-[var(--color-magenta)] neon-text-magenta flex-1">
+          <span className="text-[10px] uppercase mb-1">MAX_CORRUPT</span>
           <span className="text-xl">0x{highScore.toString(16).toUpperCase().padStart(4, '0')}</span>
         </div>
       </div>
@@ -300,13 +315,27 @@ export function SnakeGame() {
 
         {!isStarted && !gameOver && (
           <div className="absolute inset-0 bg-[#050005]/70 flex flex-col items-center justify-center text-center p-6 z-10 border border-[var(--color-cyan)] m-2 shadow-[inset_0_0_20px_var(--color-cyan)] rounded-lg backdrop-blur-md">
-            <h1 className="text-2xl md:text-3xl text-white mb-6 glitch uppercase neon-text-cyan" data-text="AWAITING_INPUT">AWAITING_INPUT</h1>
-            <p className="text-[var(--color-magenta)] text-[10px] md:text-xs mb-8 leading-loose uppercase neon-text-magenta">
+            <h1 className="text-2xl md:text-3xl text-white mb-2 glitch uppercase neon-text-cyan" data-text="AWAITING_INPUT">AWAITING_INPUT</h1>
+            <p className="text-[var(--color-magenta)] text-[10px] md:text-xs mb-6 leading-loose uppercase neon-text-magenta">
               {">"} COMMAND: WASD OR ARROWS<br/>{">"} PAUSE: SPACEBAR
             </p>
+            
+            <div className="w-full flex flex-col items-center gap-4 mb-6">
+              <span className="text-[10px] text-[var(--color-cyan)]">SYS_CLOCK_SPEED</span>
+              <div className="flex gap-2">
+                <button onClick={(e) => { e.stopPropagation(); setSpeed(200); }} className={`px-2 py-1 text-[10px] rounded border ${speed > 160 ? 'bg-[var(--color-cyan)] text-black border-[var(--color-cyan)] shadow-[0_0_5px_var(--color-cyan)]' : 'border-[var(--color-cyan)] text-[var(--color-cyan)] hover:bg-[var(--color-cyan)]/20'}`}>SLOW</button>
+                <button onClick={(e) => { e.stopPropagation(); setSpeed(140); }} className={`px-2 py-1 text-[10px] rounded border ${speed <= 160 && speed >= 100 ? 'bg-[var(--color-cyan)] text-black border-[var(--color-cyan)] shadow-[0_0_5px_var(--color-cyan)]' : 'border-[var(--color-cyan)] text-[var(--color-cyan)] hover:bg-[var(--color-cyan)]/20'}`}>NORM</button>
+                <button onClick={(e) => { e.stopPropagation(); setSpeed(80); }} className={`px-2 py-1 text-[10px] rounded border ${speed < 100 ? 'bg-[var(--color-cyan)] text-black border-[var(--color-cyan)] shadow-[0_0_5px_var(--color-cyan)]' : 'border-[var(--color-cyan)] text-[var(--color-cyan)] hover:bg-[var(--color-cyan)]/20'}`}>FAST</button>
+              </div>
+              <input type="range" min="40" max="250" value={290 - speed} onChange={e => { e.stopPropagation(); setSpeed(290 - parseInt(e.target.value)); }} 
+                onClick={e => e.stopPropagation()}
+                className="w-3/4 max-w-[200px] h-1 bg-black appearance-none border border-[var(--color-cyan)] rounded-full focus:outline-none
+                           [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--color-cyan)] [&::-webkit-slider-thumb]:shadow-[0_0_10px_var(--color-cyan)]" />
+            </div>
+
             <button 
               onClick={startGame}
-              className="px-6 py-4 bg-black/50 border-2 border-[var(--color-cyan)] shadow-[0_0_15px_rgba(0,255,255,0.4)] text-white text-xs md:text-sm uppercase font-bold hover:bg-[var(--color-cyan)] hover:border-[var(--color-cyan)] hover:shadow-[0_0_20px_var(--color-cyan)] hover:text-black transition-all rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-cyan)]"
+              className="px-6 py-4 bg-black/50 border-2 border-[var(--color-cyan)] shadow-[0_0_15px_rgba(0,255,255,0.4)] text-white text-xs md:text-sm uppercase font-bold hover:bg-[var(--color-cyan)] hover:border-[var(--color-cyan)] hover:shadow-[0_0_20px_var(--color-cyan)] hover:text-black transition-all rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-cyan)] mt-2"
             >
               [ INJECT_PAYLOAD ]
             </button>
@@ -323,22 +352,32 @@ export function SnakeGame() {
 
         {gameOver && (
           <div className="absolute inset-0 bg-[#ff00ff]/20 flex flex-col items-center justify-center text-center p-6 z-10 backdrop-blur-sm">
-            <div className="bg-black/80 border-2 neon-border-magenta p-6 backdrop-blur-md rounded-xl">
+            <div className="bg-black/80 border-2 neon-border-magenta p-6 backdrop-blur-md rounded-xl max-w-[300px] w-full">
                 <h2 className="text-2xl md:text-3xl text-white mb-4 uppercase glitch neon-text-magenta" data-text="KERNEL_PANIC">KERNEL_PANIC</h2>
-                <div className="text-[var(--color-yellow)] neon-text-yellow text-sm mb-6 flex flex-col">
-                  <span>SIGSEGV (11)</span> 
-                  <span className="text-[var(--color-cyan)] text-xs mt-2 font-glitch tracking-widest text-left">
-                    at memory address: 0x000F8<br/>
-                    registers dumped.<br/>
-                    bytes corrupted: {score}
+                <div className="text-[var(--color-yellow)] neon-text-yellow text-[10px] sm:text-xs mb-6 flex flex-col items-start font-glitch tracking-widest text-left leading-relaxed">
+                  <span>SIGSEGV (11) at 0x000F8</span> 
+                  <span className="text-[var(--color-cyan)] mt-2 opacity-80 overflow-hidden text-ellipsis whitespace-nowrap w-full">
+                    0x00: FF 00 A1 B2 C3 4D 5E<br/>
+                    0x08: 00 00 00 {score.toString(16).toUpperCase().padStart(2,'0')} 00 00 FF<br/>
+                    <br/>
+                    bytes corrupted: {score}<br/>
+                    _<span className="animate-pulse blink">|</span>
                   </span>
                 </div>
-                <button 
-                onClick={startGame}
-                className="px-8 py-3 bg-transparent border-2 neon-border-cyan text-[var(--color-cyan)] text-xs md:text-sm uppercase hover:bg-[var(--color-cyan)] hover:text-black hover:shadow-[0_0_20px_var(--color-cyan)] transition-all active:translate-y-1 block w-full rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-cyan)]"
-                >
-                [ OVERRIDE_AND_REBOOT ]
-                </button>
+                <div className="flex flex-col gap-3">
+                  <button 
+                  onClick={startGame}
+                  className="px-6 py-3 bg-[var(--color-magenta)]/20 border border-[var(--color-magenta)] text-[var(--color-magenta)] text-xs md:text-sm uppercase hover:bg-[var(--color-magenta)] hover:text-black hover:shadow-[0_0_15px_var(--color-magenta)] transition-all active:translate-y-1 block w-full rounded focus:outline-none focus:ring-2 focus:ring-[var(--color-magenta)]"
+                  >
+                  [ OVERRIDE_REBOOT ]
+                  </button>
+                  <button 
+                  onClick={() => { setGameOver(false); setIsStarted(false); }}
+                  className="px-6 py-2 bg-transparent text-gray-400 text-xs uppercase hover:text-white transition-all active:translate-y-1 block w-full rounded focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  >
+                  [ ABORT_SEQUENCE ]
+                  </button>
+                </div>
             </div>
           </div>
         )}
